@@ -52,9 +52,9 @@ class SExpr(abc.ABC):
 
         sopen = self.indent(level, self.sopen)
         lines = self.indent_all(level + 1, self.content)
-        sclose = self.indent(level, self.sclose)
+        sclose = self.sclose
 
-        return self.line_sep.join([sopen, lines, sclose])
+        return self.line_sep.join([sopen, lines + sclose])
 
     def indent(self, amount: int, item: str):
         return self.indent_char * amount + item
@@ -75,8 +75,8 @@ class SExpr(abc.ABC):
 
 
 class QuoteExpression(SExpr):
-    sopen: str = "«"
-    sclose: str = "»"
+    sopen: str = "(quote"
+    sclose: str = ")"
     multiline = False
 
     def __format__(self, fmt):
@@ -85,8 +85,8 @@ class QuoteExpression(SExpr):
 
 
 class TriangleExpression(SExpr):
-    sopen: str = "<"
-    sclose: str = ">"
+    sopen: str = "(proposition"
+    sclose: str = ")"
 
 
 class BracketExpression(SExpr):
@@ -95,13 +95,13 @@ class BracketExpression(SExpr):
 
 
 class CurlyExpression(SExpr):
-    sopen: str = "{"
-    sclose: str = "}"
+    sopen: str = "(concept"
+    sclose: str = ")"
 
 
 class LiteralExpression(SExpr):
-    sopen: str = "'("
-    sclose: str = ")"
+    sopen: str = "(literal \""
+    sclose: str = "\")"
 
 
 #  vim: set sw=4 ts=4 expandtab
