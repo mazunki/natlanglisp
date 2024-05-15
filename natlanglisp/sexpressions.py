@@ -6,6 +6,7 @@ from typing import Iterable, Collection
 __all__ = (
     "Literal",
     "SExpr",
+    "Sexpressable",
     "BracketExpression",
     "CurlyExpression",
     "LiteralExpression",
@@ -19,6 +20,10 @@ class Literal:
 
     def __str__(self) -> str:
         return self.data
+
+
+class Sexpressable:
+    pass
 
 
 class SExpr(abc.ABC):
@@ -74,6 +79,39 @@ class SExpr(abc.ABC):
         return f"{self:{level}}"
 
 
+class JsonExpression(SExpr):
+    sopen = "("
+    sclose = ")"
+
+    def format_sexpr(self, obj, indent_len=0, use_indent=True):
+        sopen = obj["sopen"] if "sopen" in obj else JsonExpression.sopen
+        sclose = obj["sclose"] if "sclose" in obj else JsonExpression.sclose
+        prefix = indent_len * " " if use_indent else ""
+        label = obj["label"]
+
+        if "denotation" in obj:
+            return prefix + sopen + obj["denotation"] + sclose
+
+        if "children" not in obj:
+            return prefix + obj
+
+        car, cdr = obj["children"][0], obj["children"][1:]
+        next_indent = indent_len + len(sopen) + len(label) + 1
+        car_str = self.format_sexpr(car, next_indent, False)
+
+        if cdr:
+            first_line = f"{prefix}{sopen}{label} {car_str}\n"
+
+            cdr_str = "\n".join(
+                [self.format_sexpr(child, next_indent, True) for child in cdr]
+            )
+
+            return f"{first_line}{cdr_str}{sclose}"
+
+        else:
+            return f"{prefix}{sopen}{label} {car_str}{sclose}"
+
+
 class QuoteExpression(SExpr):
     sopen: str = "(quote"
     sclose: str = ")"
@@ -100,8 +138,8 @@ class CurlyExpression(SExpr):
 
 
 class LiteralExpression(SExpr):
-    sopen: str = "(literal \""
-    sclose: str = "\")"
+    sopen: str = '(literal "'
+    sclose: str = '")'
 
 
 #  vim: set sw=4 ts=4 expandtab
