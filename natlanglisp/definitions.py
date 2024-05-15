@@ -5,7 +5,14 @@ from .sexpressions import Sexpressable, Literal, JsonExpression
 import abc
 import json
 
-__all__ = ("Sense", "Concept", "Proposition", "Sentence", "Function")
+__all__ = (
+    "Sense",
+    "Concept",
+    "Proposition",
+    "UnsaturatedProposition",
+    "Sentence",
+    "Function",
+)
 
 Fregians = Union["Sense", "Concept", "Proposition", "Sentence", "Function"]
 Conceptualizable = Union["Sense", "Concept"]
@@ -28,7 +35,12 @@ class Fregian(abc.ABC):
         pass
 
     def pprint(self):
-        print(JsonExpression(stupid_mode=True).format_sexpr(self.__json__()))
+        # print(self.__json__())
+        print(
+            JsonExpression(stupid_mode=True, blank_mode=True).format_sexpr(
+                self.__json__()
+            )
+        )
 
 
 class Sense(Fregian):
@@ -59,7 +71,7 @@ class Concept(Fregian):
     its reference in the real world. they are formed by combining concepts,
     propositions, and senses"""
 
-    label = "concept"
+    label = ""
 
     def __init__(self, *elements: Conceptualizable):
         self.children = set(elements)
@@ -68,7 +80,7 @@ class Concept(Fregian):
         children = [child.__json__() for child in self.children]
 
         return {
-            "label": "concept",
+            "label": self.label,
             "children": children,
         }
 
@@ -77,11 +89,9 @@ class Proposition(Concept):
     """a proposition is a tree of concepts"""
 
     label = "proposition"
-
-    def __init__(self, lhs: Propositionable, rhs: Propositionable, /):
-        self.lhs = lhs
-        self.rhs = rhs
-        self.children = self.lhs, self.rhs
+    is_complete: bool
+    predicate: str
+    children: list[Conceptualizable] = []
 
     def __json__(self) -> dict:
         return {
@@ -92,7 +102,44 @@ class Proposition(Concept):
         }
 
 
-class Sentence(Proposition):
+class SaturatedProposition(Proposition):
+    is_complete = True
+    label = "󰞌"
+
+    def __init__(self, predicates, *args: Conceptualizable):
+        self.predicates = predicates
+        self.children = list(args)
+
+    def __json__(self) -> dict:
+        return {
+            "label": self.label,
+            "sopen": "<",
+            "sclose": ">",
+            "children": [child.__json__() for child in self.children],
+        }
+
+    def __bool__(self):
+        return True  # assuming all propositions are tru
+
+
+class UnsaturatedProposition(Proposition):
+    is_complete = False
+    label = "󰚭"
+
+    def __init__(self, predicates: int, *args):
+        self.predicates = predicates
+        self.children = list(args)
+
+    def saturate(self, *elements):
+        for element in elements:
+            self.children.append(element)
+
+            if len(self.children) == self.predicates:
+                return SaturatedProposition(self.predicates, *self.children)
+        return self
+
+
+class Sentence(SaturatedProposition):
     """a proposition is a complete tree of concepts. it has a truth value"""
 
     label = "sentence"
