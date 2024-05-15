@@ -83,9 +83,24 @@ class JsonExpression(SExpr):
     sopen = "("
     sclose = ")"
 
+    def __init__(self, stupid_mode=False):
+        self.stupid_mode = stupid_mode
+
     def format_sexpr(self, obj, indent_len=0, use_indent=True):
-        sopen = obj["sopen"] if "sopen" in obj else JsonExpression.sopen
-        sclose = obj["sclose"] if "sclose" in obj else JsonExpression.sclose
+        sopen = (
+            obj["sopen"]
+            if "sopen" in obj and not self.stupid_mode
+            else (
+                f"'{JsonExpression.sopen}"
+                if "denotation" in obj
+                else JsonExpression.sopen
+            )
+        )
+        sclose = (
+            obj["sclose"]
+            if "sclose" in obj and not self.stupid_mode
+            else JsonExpression.sclose
+        )
         prefix = indent_len * " " if use_indent else ""
         label = obj["label"]
 

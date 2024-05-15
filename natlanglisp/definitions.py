@@ -28,7 +28,7 @@ class Fregian(abc.ABC):
         pass
 
     def pprint(self):
-        print(JsonExpression().format_sexpr(self.__json__()))
+        print(JsonExpression(stupid_mode=True).format_sexpr(self.__json__()))
 
 
 class Sense(Fregian):
