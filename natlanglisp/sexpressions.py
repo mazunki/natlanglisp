@@ -90,16 +90,12 @@ class JsonExpression(SExpr):
         sopen = (
             obj["sopen"]
             if "sopen" in obj and not self.stupid_mode
-            else (
-                f"'{JsonExpression.sopen}"
-                if "denotation" in obj
-                else JsonExpression.sopen
-            )
+            else ('"' if "denotation" in obj else JsonExpression.sopen)
         )
         sclose = (
             obj["sclose"]
             if "sclose" in obj and not self.stupid_mode
-            else JsonExpression.sclose
+            else ('"' if "denotation" in obj else JsonExpression.sclose)
         )
         prefix = indent_len * " " if use_indent else ""
         label = obj["label"]
