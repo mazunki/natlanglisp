@@ -1,0 +1,7 @@
+
+# frege to lisp
+
+wip for building semantic proposition and truth statements a la frege, outputting lisp expressions
+
+(i barely know lisp so eh, my sexpr class is likely buggy)
+
